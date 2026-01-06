@@ -1,0 +1,107 @@
+model:
+  name: "gsarti/it5-base"
+  size: "base"
+  type: "t5"
+  max_input_length: 512
+  max_target_length: 512
+
+lora:
+  enabled: true
+  r: 16
+  lora_alpha: 32
+  lora_dropout: 0.1
+  target_modules: ["q", "k", "v", "o", "wi", "wo"]
+  task_type: "SEQ_2_SEQ_LM"
+
+training:
+  neutrality_guidance_weight: 1.2
+  neutrality_guidance_frequency: 4
+  learning_rate: 1.0e-4
+  per_device_train_batch_size: 4
+  per_device_eval_batch_size: 8
+  gradient_accumulation_steps: 8
+  num_train_epochs: 20
+  warmup_ratio: 0.1
+  weight_decay: 0.01
+  max_grad_norm: 1.0
+  label_smoothing_factor: 0.1
+  fp16: true
+  logging_steps: 50
+  eval_steps: 200
+  save_steps: 400
+  evaluation_strategy: "steps"
+  save_strategy: "steps"
+  load_best_model_at_end: true
+  metric_for_best_model: "eval_bleu"
+  greater_is_better: true
+  early_stopping_patience: 10
+  early_stopping_threshold: 0.01
+  predict_with_generate: true
+  generation_max_length: 512
+  generation_num_beams: 4
+  dataloader_num_workers: 4
+
+generation:
+  max_length: 512
+  num_beams: 4
+  length_penalty: 1.1
+  no_repeat_ngram_size: 3
+  early_stopping: true
+  temperature: 1.0
+  do_sample: false
+
+neutrality_classifier:
+  model_path: outputs/models/bert_corrected/final_model
+  loss_weight: 1.5
+  target_rate: 0.85
+  batch_size: 16
+  max_length: 256
+  device: cpu
+  neutral_label: "neutral"
+  hyper_label: "hyperpartisan"
+
+callbacks:
+  generation_sampler:
+    num_samples: 10
+    sample_every: 200
+
+optuna:
+  training:
+    learning_rate:
+      type: categorical
+      choices: [5.0e-5, 1.0e-4, 2.0e-4, 3.0e-4]
+    gradient_accumulation_steps:
+      type: categorical
+      choices: [4, 8, 12]
+    warmup_ratio:
+      type: categorical
+      choices: [0.05, 0.1, 0.15]
+    label_smoothing_factor:
+      type: categorical
+      choices: [0.05, 0.1, 0.15]
+    neutrality_guidance_weight:
+      type: categorical
+      choices: [0.8, 1.0, 1.2, 1.5]
+  lora:
+    r:
+      type: categorical
+      choices: [16, 32, 48]
+    lora_alpha:
+      type: categorical
+      choices: [32, 64, 96]
+    lora_dropout:
+      type: categorical
+      choices: [0.05, 0.1, 0.15]
+  generation:
+    num_beams:
+      type: categorical
+      choices: [4, 5, 6]
+    length_penalty:
+      type: float
+      low: 1.0
+      high: 1.4
+
+wandb:
+  project: "italian-hyperpartisan-neutralization"
+  entity: null
+  tags: ["sft", "it5", "base", "optuna", "neutrality-guided"]

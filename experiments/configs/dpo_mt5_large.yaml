@@ -1,0 +1,40 @@
+# DPO Configuration for mT5-large
+model:
+  name: "google/mt5-large"
+  size: "large"
+  type: "mt5"
+  max_input_length: 512
+  max_target_length: 512
+
+lora:
+  r: 16
+  lora_alpha: 32
+  lora_dropout: 0.1
+  target_modules: ["q", "v"]
+  task_type: "SEQ_2_SEQ_LM"
+
+dpo:
+  beta: 0.1
+
+training:
+  learning_rate: 1.0e-5
+  per_device_train_batch_size: 4
+  per_device_eval_batch_size: 4
+  gradient_accumulation_steps: 8
+  num_train_epochs: 10
+  warmup_ratio: 0.1
+  weight_decay: 0.01
+  max_grad_norm: 1.0
+  fp16: false  # mT5 needs FP32 for stability
+  logging_steps: 50
+  eval_steps: 200
+  save_steps: 400
+  evaluation_strategy: "steps"
+  save_strategy: "steps"
+  load_best_model_at_end: true
+  dataloader_num_workers: 4
+
+wandb:
+  project: "italian-hyperpartisan-neutralization"
+  entity: null
+  tags: ["dpo", "mt5", "large"]

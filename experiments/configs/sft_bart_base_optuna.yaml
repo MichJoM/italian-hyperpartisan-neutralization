@@ -1,0 +1,111 @@
+model:
+  name: "facebook/bart-base"
+  size: "base"
+  type: "bart"
+  max_input_length: 512
+  max_target_length: 512
+
+lora:
+  r: 16
+  lora_alpha: 32  # Increased from 32 to give LoRA more influence
+  lora_dropout: 0.1
+  # Add more target modules for better coverage
+  target_modules: ["q_proj", "v_proj", "k_proj", "out_proj"]
+  task_type: "SEQ_2_SEQ_LM"
+
+training:
+  # CRITICAL: Increase these guidance parameters significantly
+  neutrality_guidance_weight: 2.0     # Increased from 0.5 - much stronger penalty
+  neutrality_guidance_frequency: 3    # More frequent (every 3 steps instead of 5)
+  
+  learning_rate: 1.0e-4  # Slightly lower for more stable learning
+  per_device_train_batch_size: 8  # Reduced to allow longer sequences in memory
+  per_device_eval_batch_size: 8
+  gradient_accumulation_steps: 8  # Increased to maintain effective batch size
+  num_train_epochs: 15  # More epochs for small dataset
+  warmup_ratio: 0.15  # Longer warmup
+  weight_decay: 0.01  # Reduced to allow more model flexibility
+  max_grad_norm: 1.0
+  label_smoothing_factor: 0.1  # Increased to encourage diverse outputs
+  fp16: true
+  logging_steps: 50
+  eval_steps: 200  # More frequent evaluation
+  save_steps: 400
+  evaluation_strategy: "steps"
+  save_strategy: "steps"
+  load_best_model_at_end: true
+  metric_for_best_model: "eval_bleu"  # CHANGED: Optimize for neutrality!
+  greater_is_better: true
+  early_stopping_patience: 7  # More patience
+  predict_with_generate: true
+  generation_max_length: 512
+  generation_num_beams: 5  # Slightly more beams
+  dataloader_num_workers: 4
+  early_stopping_threshold: 0.01
+
+generation:
+  max_length: 512
+  num_beams: 5  # Match training
+  length_penalty: 1.2  # Encourage slightly longer outputs (paraphrasing)
+  no_repeat_ngram_size: 3
+  early_stopping: true
+  # Add diversity parameters to encourage rewriting
+  temperature: 1.0
+  do_sample: false  # Keep beam search for consistency
+
+neutrality_classifier:
+  model_path: outputs/models/bert_corrected/final_model
+  loss_weight: 2.5  # Increased from 1.5 - stronger signal
+  target_rate: 0.85  # Slightly lower target (90% may be too aggressive)
+  batch_size: 16
+  max_length: 256
+  device: cpu
+  neutral_label: "neutral"  # Explicitly specify
+  hyper_label: "hyperpartisan"
+
+optuna:
+  training:
+    learning_rate:
+      type: categorical
+      choices: [1.0e-4, 2.0e-4, 3.0e-4, 5.0e-4]
+    gradient_accumulation_steps:
+      type: categorical
+      choices: [4, 8, 16]
+    warmup_ratio:
+      type: categorical
+      choices: [0.1, 0.15, 0.2]
+    label_smoothing_factor:
+      type: categorical
+      choices: [0.05, 0.1, 0.15]
+    # Add neutrality guidance to hyperparameter search
+    neutrality_guidance_weight:
+      type: categorical
+      choices: [1.0, 1.5, 2.0, 2.5]
+  lora:
+    r:
+      type: categorical
+      choices: [16, 32, 48]
+    lora_alpha:
+      type: categorical
+      choices: [32, 64, 96]
+    lora_dropout:
+      type: categorical
+      choices: [0.05, 0.1]
+  generation:
+    num_beams:
+      type: categorical
+      choices: [4, 5, 6]
+    length_penalty:
+      type: float
+      low: 1.0
+      high: 1.5
+
+callbacks:
+  generation_sampler:
+    num_samples: 10  # More samples to monitor
+    sample_every: 100
+
+wandb:
+  project: "italian-hyperpartisan-neutralization"
+  entity: null
+  tags: ["sft", "bart", "base", "neutrality-guided"]
