@@ -7,6 +7,7 @@ Toolkit for building, fine-tuning, and evaluating Italian language models that t
 - **Direct Preference Optimization (DPO)** training with configurable model families, LoRA, and neutrality scoring hooks.
 - **Neutrality classifier** training to keep track of hyperpartisan cues and steer generation.
 - **Machine text generation** utilities powered by vLLM for running large decoder-only models from templated configs.
+- **Dataset documentation** via a full [datasheet](datasheet.md) detailing provenance, licensing, and ethical considerations.
 - **Evaluation scripts** ranging from automatic metrics to GPT-4o-mini judging for qualitative inspection.
 
 ## Repository Layout
@@ -16,6 +17,7 @@ Toolkit for building, fine-tuning, and evaluating Italian language models that t
 ├── experiments/
 │   ├── configs/               # YAML configs for SFT, DPO, and vLLM text generation
 │   └── scripts/               # All dataset, training, generation, evaluation, and utility scripts
+├── datasheet.md               # Full documentation for the PartisanLens dataset
 ├── guidelines/                # Project notes and methodology PDFs
 ├── requirements.txt           # Minimal pip requirements for quick installs
 ├── t5_environment.yml         # Full Conda environment (CUDA 12 + research stack)
@@ -57,6 +59,10 @@ huggingface-cli login
 ```
 
 Set `WANDB_PROJECT`, `WANDB_ENTITY`, and `WANDB_API_KEY` if you plan to enable W&B logging (`--use_wandb` flag in several scripts).
+
+## Dataset Documentation
+
+The repository ships with [datasheet.md](datasheet.md), a researcher-facing datasheet for the PartisanLens corpus describing motivation, composition, collection protocol, licensing constraints, and recommended/forbidden uses. Please cite or link to the datasheet whenever you redistribute the derived resources, and review it before releasing new annotations to ensure you comply with the underlying SemEval 2023 Task 3 license.
 
 
 ## Supervised Fine-Tuning (SFT)
