@@ -6,16 +6,16 @@
 #SBATCH --mem=40gb
 #SBATCH --gres=gpu:A100_40:1
 #SBATCH --output=/italian-hyperpartisan-neutralization/logs/eval_%j.out
-#SBATCH --error= /italian-hyperpartisan-neutralization/logs/eval_%j.err
+#SBATCH --error=/italian-hyperpartisan-neutralization/logs/eval_%j.err
 
 set -euo pipefail
 
 # Activate environment
-source  /miniconda3/bin/activate unsloth_env
+source /miniconda3/bin/activate unsloth_env
 
-export HF_TOKEN="XXX"
+export HF_TOKEN="${HF_TOKEN:-}"
 
-PROJECT_ROOT=" /italian-hyperpartisan-neutralization"
+PROJECT_ROOT="/italian-hyperpartisan-neutralization"
 PYTHON_SCRIPT="$PROJECT_ROOT/experiments/scripts/evaluate_llama.py"
 
 echo "========================================"
