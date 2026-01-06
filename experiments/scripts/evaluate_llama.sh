@@ -13,7 +13,7 @@ set -euo pipefail
 # Activate environment
 source  /miniconda3/bin/activate unsloth_env
 
-export HF_TOKEN="***REMOVED***"
+export HF_TOKEN="XXX"
 
 PROJECT_ROOT=" /italian-hyperpartisan-neutralization"
 PYTHON_SCRIPT="$PROJECT_ROOT/experiments/scripts/evaluate_llama.py"
