@@ -6,6 +6,7 @@ Toolkit for building, fine-tuning, and evaluating Italian language models that t
 - **Supervised fine-tuning (SFT)** pipelines for IT5, FLAN-T5, mT5, and BART models with optional LoRA adapters and neutrality-guided loss.
 - **Direct Preference Optimization (DPO)** training with configurable model families, LoRA, and neutrality scoring hooks.
 - **Neutrality classifier** training to keep track of hyperpartisan cues and steer generation.
+- **Machine text generation** utilities powered by vLLM for running large decoder-only models from templated configs.
 - **Evaluation scripts** ranging from automatic metrics to GPT-4o-mini judging for qualitative inspection.
 
 ## Repository Layout
@@ -13,8 +14,8 @@ Toolkit for building, fine-tuning, and evaluating Italian language models that t
 ```
 ├── data/                       # Cannot be disclosed for the moment due to copyrights with Semeval 2023 authors
 ├── experiments/
-│   ├── configs/               # YAML configs for SFT & DPO runs (model + LoRA + trainer knobs)
-│   └── scripts/               # All dataset, training, evaluation, and utility scripts
+│   ├── configs/               # YAML configs for SFT, DPO, and vLLM text generation
+│   └── scripts/               # All dataset, training, generation, evaluation, and utility scripts
 ├── guidelines/                # Project notes and methodology PDFs
 ├── requirements.txt           # Minimal pip requirements for quick installs
 ├── t5_environment.yml         # Full Conda environment (CUDA 12 + research stack)
@@ -144,6 +145,30 @@ Key features:
 - Automatic LoRA reapplication for the policy model; frozen reference model
 - Built-in BLEU, ROUGE-L, BERTScore, and neutrality metrics on the validation set
 - JSONL generation dumps for qualitative inspection (`outputs/models/dpo/.../dpo_generations_*.jsonl`)
+
+## Machine Text Generation (vLLM)
+
+Use `experiments/scripts/generate_machine_text_vllm.py` to batch-generate model completions with [vLLM](https://github.com/vllm-project/vllm) using declarative configs.
+
+1. **Prepare prompts** – The script expects `human_outfox.csv` in the project root with at least `context` and `split` columns. Adjust the path inside the script if your prompt file lives elsewhere.
+2. **Pick one or more configs** – Every decoder-only model has a YAML file under `experiments/configs/` (e.g., `gpt-oss-20b.yml`, `gemma-3-12b-it.yml`, `apertus-70b-instruct.yml`, `ministral-3-8b-instruct.yml`). Each config supports:
+  - `model_id` or `model_path` (Hugging Face Hub identifier vs local checkpoint path)
+  - `init_args` forwarded to `vllm.LLM(...)` (e.g., `tensor_parallel_size`, `dtype`, quantization blocks)
+  - `gen_args` consumed by `SamplingParams` (e.g., `max_tokens`, `temperature`, `top_p`)
+  - optional `token_args` for tokenizer overrides.
+3. **Select the models to run** – Edit the `MODELS` list near the top of the script (or set `MODELS` via your own wrapper) to reference the config basenames you want to execute.
+4. **Launch generation** – Run locally or inside SLURM:
+
+```bash
+python experiments/scripts/generate_machine_text_vllm.py
+```
+
+Set `VERBOSE=1` or `DEBUG=1` for richer logging, and `SAMPLE_PROMPTS=128` to dry-run on a subset. The script detects available GPUs, streams prompts through each model, and saves:
+
+- `outputs/<model>.csv.gz` containing `{prompt, generated_text, split}`
+- `outputs/<model>_model_configs.json` documenting the exact config (plus `SLURM_JOB_ID` when present)
+
+VRAM is the limiting factor—refer to the provided configs for tensor parallel settings suitable for H100/L40S clusters.
 
 ## Evaluation & Analysis
 

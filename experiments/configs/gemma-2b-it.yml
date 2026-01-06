@@ -1,0 +1,22 @@
+token_args:
+  return_tensors: "pt"
+  truncation: True
+  padding: True
+  pad_token: "<eos>"
+  padding_side: "left"
+  max_length: 2048
+model_id: "google/gemma-2b-it"
+model_name: "gemma-2b"
+init_args:
+  device_map: "auto"
+  dtype: "bfloat16"
+  attn_implementation: "flash_attention_2"
+  # No quantization for <12B models (CUDA). Uses default precision.
+
+gen_args:
+  max_new_tokens: 2048
+  # max_new_tokens: 1024
+  # max_new_tokens: 512
+  do_sample: True
+  temperature: 0.7
+  top_p: 0.90

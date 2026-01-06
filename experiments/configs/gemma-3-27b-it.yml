@@ -1,0 +1,26 @@
+model_id: "google/gemma-3-27b-it"
+model_name: "gemma-3-27b-it"
+model_path: "/home/2017025/PARTAGE/LLMs/models/gemma-3-27b-it"
+token_args:
+  #   return_tensors: "pt"
+  truncation: True
+  padding: True
+  # pad_token: "<eos>"
+  # padding_side: "left"
+  max_length: 2048
+init_args:
+  # device_map: "auto"
+  device_map: "balanced"
+  dtype: "bfloat16"
+  attn_implementation: "flash_attention_2"
+  # For CUDA: float16 by default. Uncomment below for 4-bit quantization (bnb/nf4):
+  # quantization_config:
+  #   load_in_4bit: True
+  #   bnb_4bit_compute_dtype: "bfloat16"
+  #   bnb_4bit_quant_type: "nf4"
+  #   bnb_4bit_use_double_quant: True
+gen_args:
+  max_new_tokens: 2048
+  do_sample: True
+  temperature: 0.7
+  top_p: 0.90

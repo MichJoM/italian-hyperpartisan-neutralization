@@ -1,0 +1,57 @@
+model_id: "mistralai/Mistral-Nemo-Instruct-2407"
+model_name: "mistral-nemo"
+init_args:
+  device_map: "auto"
+  torch_dtype: "float16"
+  attn_implementation: "flash_attention_2"
+  quantization_config:
+    load_in_4bit: True
+    bnb_4bit_compute_dtype: "bfloat16"
+    bnb_4bit_quant_type: "nf4"
+    bnb_4bit_use_double_quant: True
+  # Unsloth
+  # max_seq_length: 2048
+  # dtype: null # set to null/none with unsloth.
+  # load_in_4bit: True
+token_args:
+  return_tensors: "pt"
+  truncation: True
+  padding: True
+  # HF
+  pad_token: "</s>"
+  # pad_token_id: 2 # try to infer this in scripts.
+  padding_side: "left"
+  max_length: 2048 # Add explicit max_length for tokenizer
+
+model_args:
+  # Early stopping removed.
+
+gen_args:
+  # HF
+  use_cache: True
+  # Choose one: either max_length or max_new_tokens, not both
+  # max_length: 1024  # Commenting out to avoid conflict
+  max_new_tokens: 1024
+
+  # Unsloth
+  # use_cache: True # set to true when using Unsloth.
+
+  # universal
+  do_sample: False # setting to false to keep responses as similar as possible. False = greedy decoding.
+  num_beams: 1 # also necessary for greedy sampling.
+
+  # beam search
+  # temperature: 0.3
+  # top_p: ??
+  # top_k: ?? -- maybe leave to defaults.
+  # early_stopping: True # Changed to False for greedy decoding
+  # NOTE keep these in mind, they might ruin the paraphrase sentence extraction.
+  stop_strings:
+    # - "\n"
+    - "\n\n"
+    - "##"
+
+decode_args:
+  skip_special_tokens: True
+# handled by unsloth.Use the plain HF model if you want to specifcy the precision etc. See https://huggingface.co/docs/transformers/v4.46.3/en/model_doc/mistral for reference.
+

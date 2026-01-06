@@ -1,0 +1,26 @@
+model_name: "ministral-3-3b"
+model_id: "mistralai/Ministral-3-3B-Instruct-2512"
+model_path: "/home/2017025/PARTAGE/LLMs/models/ministral-3-3b-instruct"
+# Cloned from ministral-3-14b-instruct.yml
+# model_id: "unsloth/Ministral-3-3B-Instruct-2512-unsloth-bnb-4bit"
+token_args:
+  # return_tensors: "pt"
+  truncation: True
+  padding: True
+  # pad_token: "<pad>"
+  # padding_side: "left"
+  max_length: 2048
+  # use_fast: False
+init_args:
+  device_map: "auto"
+  dtype: "auto"
+  attn_implementation: "flash_attention_2"
+  # quantization_config:
+  # fp8: true
+
+gen_args:
+  # max_new_tokens: 2048
+  max_tokens: 2048
+  # do_sample: True
+  temperature: 0.7
+  top_p: 0.9
